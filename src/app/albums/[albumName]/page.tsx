@@ -1,27 +1,32 @@
+import UploadButton from '@/components/UploadButton'
 import React from 'react'
 import cloudinary from 'cloudinary'
 import ImageViewer from '@/components/ImageViewer'
-import { SearchResults } from '../gallery/page'
 import ImageGrid from '@/components/ImageGrid'
+import { SearchResults } from '@/app/gallery/page'
 
-const FavoritesPage = async () => {
+const GalleryPage = async ({
+  params: { albumName },
+}: {
+  params: { albumName: string }
+}) => {
   const results = (await cloudinary.v2.search
-    .expression('resource_type:image AND tags=favorite')
+    .expression(`resource_type:image AND folder=${albumName}`)
     .sort_by('created_at', 'desc')
     .with_field('tags')
-    .max_results(10)
+    .max_results(30)
     .execute()) as { resources: SearchResults[] }
 
   return (
     <section className=''>
       <div className='flex flex-col gap-8'>
         <div className='flex justify-between'>
-          <h1 className='text-4xl font-bold'>Favorites</h1>
+          <h1 className='text-4xl font-bold'>{albumName} Album</h1>
         </div>
-        <ImageGrid images={results.resources} path='/favorites' />
+        <ImageGrid images={results.resources} path='/gallery' />
       </div>
     </section>
   )
 }
 
-export default FavoritesPage
+export default GalleryPage

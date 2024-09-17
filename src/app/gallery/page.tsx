@@ -2,18 +2,26 @@ import UploadButton from '@/components/UploadButton'
 import React from 'react'
 import cloudinary from 'cloudinary'
 import ImageViewer from '@/components/ImageViewer'
+import ImageGrid from '@/components/ImageGrid'
+import { SearchForm } from '@/components/SearchForm'
 
 export type SearchResults = {
   public_id: string
   tags: string[]
 }
 
-const GalleryPage = async () => {
+const GalleryPage = async ({
+  searchParams: { search },
+}: {
+  searchParams: {
+    search: string
+  }
+}) => {
   const results = (await cloudinary.v2.search
-    .expression('resource_type:image')
+    .expression(`resource_type:image${search ? ` AND tags=${search}` : ''}`)
     .sort_by('created_at', 'desc')
     .with_field('tags')
-    .max_results(10)
+    .max_results(30)
     .execute()) as { resources: SearchResults[] }
 
   return (
@@ -23,18 +31,8 @@ const GalleryPage = async () => {
           <h1 className='text-4xl font-bold'>Gallery</h1>
           <UploadButton />
         </div>
-        <div className='grid grid-cols-4 gap-4'>
-          {results.resources.map((result) => (
-            <ImageViewer
-              path='/gallery'
-              key={result.public_id}
-              imageData={result}
-              width='400'
-              height='300'
-              alt='image'
-            />
-          ))}
-        </div>
+        <SearchForm />
+        <ImageGrid images={results.resources} path='/gallery' />
       </div>
     </section>
   )
